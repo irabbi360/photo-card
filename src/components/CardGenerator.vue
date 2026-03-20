@@ -679,6 +679,10 @@ onMounted(async () => {
   display: flex;
   justify-content: center;
   align-items: flex-start;
+  position: sticky;
+  top: 20px;
+  max-height: 100vh;
+  overflow-y: auto;
 }
 
 .canvas-container {
