@@ -5,7 +5,68 @@
       <!-- Input Section (Left) -->
       <div class="input-section">
         <h2 class="section-title">✍️ কার্ডের তথ্য দিন</h2>
-        
+
+        <!-- Event Selection -->
+        <div class="form-group">
+          <label>উৎসব নির্বাচন করুন:</label>
+          <select v-model="selectedEvent" @change="drawCanvas" class="event-select">
+            <option value="ঈদ মোবারক">ঈদ মোবারক</option>
+            <option value="রমজানুল মোবারক">রমজানুল মোবারক</option>
+            <option value="শুভ নববর্ষ">শুভ নববর্ষ</option>
+            <option value="শুভ জন্মদিন">শুভ জন্মদিন</option>
+            <option value="custom">অন্যান্য (নিজে লিখুন)</option>
+          </select>
+        </div>
+
+        <!-- Custom Event Input -->
+        <div class="form-group" v-if="selectedEvent === 'custom'">
+          <label>আপনার উৎসবের নাম লিখুন:</label>
+          <input type="text" v-model="customEvent" placeholder="যেমন: স্বাধীনতা দিবস" @input="drawCanvas" />
+        </div>
+
+        <!-- Event Text Color -->
+        <div class="form-group">
+          <label>উৎসবের পাঠের রঙ:</label>
+          <div class="color-picker-wrapper">
+            <input type="color" v-model="eventTextColor" @change="drawCanvas" class="color-picker" />
+            <span class="color-value">{{ eventTextColor }}</span>
+          </div>
+        </div>
+
+        <!-- Event Text Font Size -->
+        <div class="form-group">
+          <label>উৎসবের পাঠের আকার: <span class="font-size-display">{{ eventFontSize }}px</span></label>
+          <input type="range" v-model.number="eventFontSize" min="30" max="150" step="5" @change="drawCanvas" class="font-size-slider" />
+        </div>
+
+        <!-- Event Text Font Family -->
+        <div class="form-group">
+          <label>উৎসবের পাঠের ফন্ট:</label>
+          <select v-model="eventFont" @change="drawCanvas" class="font-select">
+            <option value="Hind Siliguri">Hind Siliguri</option>
+            <option value="Noto Sans Bengali">Noto Sans Bengali</option>
+            <option value="Playfair Display">Playfair Display</option>
+            <option value="Montserrat">Montserrat</option>
+            <option value="Poppins">Poppins</option>
+            <option value="Roboto Slab">Roboto Slab</option>
+          </select>
+        </div>
+
+        <!-- Template Selection -->
+        <div class="form-group">
+          <label>ডিজাইন টেমপ্লেট নির্বাচন করুন:</label>
+          <div class="template-selector">
+            <label class="radio-label">
+              <input type="radio" value="classic" v-model="selectedTemplate" @change="drawCanvas" />
+              সাধারণ (গোল ছবি)
+            </label>
+            <label class="radio-label">
+              <input type="radio" value="political" v-model="selectedTemplate" @change="drawCanvas" />
+              রাজনৈতিক (বহুভুজ)
+            </label>
+          </div>
+        </div>
+
         <!-- Background Selection -->
         <div class="form-group">
           <label>কার্ডের ব্যাকগ্রাউন্ড নির্বাচন করুন:</label>
@@ -38,7 +99,7 @@
           <input type="text" v-model="userDesignation" placeholder="যেমন: বিশিষ্ট সমাজ সেবক" @input="drawCanvas" />
         </div>
 
-        <div class="form-group">
+        <div class="form-group" v-if="selectedTemplate === 'classic'">
           <label>শুভেচ্ছা বার্তা:</label>
           <textarea v-model="userMessage" rows="3" @input="drawCanvas"></textarea>
         </div>
@@ -85,6 +146,12 @@ const canvasRef = ref(null);
 const prebuiltBackgrounds = [defaultBg, bg2, bg3, bg1, bg2x, bg3x, bg4, bg5, bg6];
 
 // State bound to inputs
+const selectedEvent = ref('ঈদ মোবারক');
+const customEvent = ref('');
+const selectedTemplate = ref('classic');
+const eventTextColor = ref('#ff0000');
+const eventFontSize = ref(95);
+const eventFont = ref('Hind Siliguri');
 const userName = ref('');
 const userDesignation = ref('');
 const userMessage = ref('পবিত্র ঈদুল ফিতরের আনন্দ ছড়িয়ে\nপড়ুক সবার মনে। ঈদ মোবারক!');
@@ -175,96 +242,157 @@ const drawCanvas = () => {
   if (backgroundImage.value) {
     ctx.drawImage(backgroundImage.value, 0, 0, width, height);
   } else {
-    // Clear & set white background
     ctx.fillStyle = '#ffffff';
     ctx.fillRect(0, 0, width, height);
-
-    // Background inner shadow effect / border
-    ctx.strokeStyle = '#f8f9fa';
-    ctx.lineWidth = 15;
-    ctx.strokeRect(7.5, 7.5, width - 15, height - 15);
   }
 
-  // --- Avatar Logic ---
-  const centerX = width / 2;
-  const avatarY = 250;
-  const radius = 130;
+  // Get current event text
+  const mainEventText = selectedEvent.value === 'custom' ? customEvent.value : selectedEvent.value;
 
-  ctx.save();
-  ctx.beginPath();
-  ctx.arc(centerX, avatarY, radius, 0, Math.PI * 2);
-  ctx.closePath();
-  ctx.clip(); // Mask circle
+  if (selectedTemplate.value === 'political') {
+    // --- POLITICAL TEMPLATE ---
+    ctx.fillStyle = '#01949a';
+    ctx.fillRect(0, 880, width, 120);
 
-  if (userImage.value) {
-    const imgWidth = userImage.value.width;
-    const imgHeight = userImage.value.height;
-    const ratio = Math.max((radius * 2) / imgWidth, (radius * 2) / imgHeight);
-    const drawW = imgWidth * ratio;
-    const drawH = imgHeight * ratio;
-    const drawX = centerX - drawW / 2;
-    const drawY = avatarY - drawH / 2;
-    ctx.drawImage(userImage.value, drawX, drawY, drawW, drawH);
+    const polyYStart = 450;
+    const polyYEnd = 880;
+    
+    ctx.save();
+    ctx.beginPath();
+    ctx.moveTo(0, polyYStart);
+    ctx.lineTo(260, polyYStart);
+    ctx.lineTo(440, 665);
+    ctx.lineTo(260, polyYEnd);
+    ctx.lineTo(0, polyYEnd);
+    ctx.closePath();
+
+    ctx.save();
+    ctx.clip();
+    if (userImage.value) {
+      const polyW = 440;
+      const polyH = polyYEnd - polyYStart;
+      const imgWidth = userImage.value.width;
+      const imgHeight = userImage.value.height;
+      const ratio = Math.max(polyW / imgWidth, polyH / imgHeight);
+      const drawW = imgWidth * ratio;
+      const drawH = imgHeight * ratio;
+      const drawX = 0;
+      const drawY = polyYStart + (polyH - drawH) / 2;
+      ctx.drawImage(userImage.value, drawX, drawY, drawW, drawH);
+    } else {
+      ctx.fillStyle = '#e9ecef';
+      ctx.fill();
+    }
+    ctx.restore();
+    
+    ctx.beginPath();
+    ctx.moveTo(0, polyYStart);
+    ctx.lineTo(260, polyYStart);
+    ctx.lineTo(440, 665);
+    ctx.lineTo(260, polyYEnd);
+    ctx.lineTo(0, polyYEnd);
+    ctx.closePath();
+    ctx.strokeStyle = '#01949a';
+    ctx.lineWidth = 14;
+    ctx.stroke();
+    ctx.restore();
+
+    drawTextWithShadow(ctx, userName.value || 'আপনার নাম', width / 2, 920, {
+      font: 'bold 45px "Hind Siliguri", sans-serif',
+      color: '#ffffff'
+    });
+
+    if (userDesignation.value) {
+      drawTextWithShadow(ctx, userDesignation.value, width / 2, 970, {
+        font: 'bold 24px "Hind Siliguri", sans-serif',
+        color: '#e0ecec'
+      });
+    }
+
+    // Floating header text for political mode
+    if (mainEventText) {
+      drawTextWithShadow(ctx, mainEventText, width / 2, 80, {
+        font: `bold ${Math.round(eventFontSize.value * 0.52)}px "${eventFont.value}", sans-serif`,
+        color: eventTextColor.value,
+        strokeColor: '#ffffff', strokeWidth: 4,
+        shadowColor: 'rgba(0,0,0,0.3)', shadowY: 3, shadowBlur: 5
+      });
+    }
+
   } else {
-    // Empty placeholder
-    ctx.fillStyle = '#e9ecef';
-    ctx.fill();
-  }
-  ctx.restore();
+    // --- CLASSIC TEMPLATE ---
+    if (!backgroundImage.value) {
+      ctx.strokeStyle = '#f8f9fa';
+      ctx.lineWidth = 15;
+      ctx.strokeRect(7.5, 7.5, width - 15, height - 15);
+    }
 
-  // Avatar Border Ring
-  ctx.beginPath();
-  ctx.arc(centerX, avatarY, radius, 0, Math.PI * 2);
-  ctx.strokeStyle = '#d4af37'; // Golden color
-  ctx.lineWidth = 8;
-  ctx.stroke();
+    const centerX = width / 2;
+    const avatarY = 250;
+    const radius = 130;
 
-  // --- Fixed Text 1 ---
-  drawTextWithShadow(ctx, 'ঈদ মোবারক', centerX, 470, {
-    font: 'bold 95px "Hind Siliguri", sans-serif',
-    color: '#ff0000',
-    shadowColor: 'rgba(0,0,0,0.3)',
-    shadowY: 6,
-    shadowBlur: 10
-  });
+    ctx.save();
+    ctx.beginPath();
+    ctx.arc(centerX, avatarY, radius, 0, Math.PI * 2);
+    ctx.closePath();
+    ctx.save();
+    ctx.clip();
+    if (userImage.value) {
+      const imgWidth = userImage.value.width;
+      const imgHeight = userImage.value.height;
+      const ratio = Math.max((radius * 2) / imgWidth, (radius * 2) / imgHeight);
+      const drawW = imgWidth * ratio;
+      const drawH = imgHeight * ratio;
+      const drawX = centerX - drawW / 2;
+      const drawY = avatarY - drawH / 2;
+      ctx.drawImage(userImage.value, drawX, drawY, drawW, drawH);
+    } else {
+      ctx.fillStyle = '#e9ecef';
+      ctx.fill();
+    }
+    ctx.restore();
 
-  // --- Fixed Text 2 ---
-  drawTextWithShadow(ctx, 'শুভেচ্ছান্তে', centerX, 580, {
-    font: 'bold 45px "Hind Siliguri", sans-serif',
-    color: '#ffffff',
-    strokeColor: '#cccccc',
-    strokeWidth: 4,
-    shadowColor: 'rgba(0,0,0,0.2)',
-    shadowY: 3,
-    shadowBlur: 6
-  });
+    ctx.beginPath();
+    ctx.arc(centerX, avatarY, radius, 0, Math.PI * 2);
+    ctx.strokeStyle = '#d4af37';
+    ctx.lineWidth = 8;
+    ctx.stroke();
+    ctx.restore();
 
-  // --- Dynamic Details ---
-  drawTextWithShadow(ctx, userName.value || 'আপনার নাম', centerX, 680, {
-    font: 'bold 65px "Hind Siliguri", sans-serif',
-    color: '#d4af37', // Golden color
-    shadowColor: 'rgba(0,0,0,0.15)',
-    shadowY: 4,
-    shadowBlur: 8
-  });
+    // Replaced hardcoded 'ঈদ মোবারক' with dynamic text
+    drawTextWithShadow(ctx, mainEventText || 'উৎসবের নাম', centerX, 470, {
+      font: `bold ${eventFontSize.value}px "${eventFont.value}", sans-serif`,
+      color: eventTextColor.value,
+      shadowColor: 'rgba(0,0,0,0.3)', shadowY: 6, shadowBlur: 10
+    });
 
-  if (userDesignation.value) {
-    drawTextWithShadow(ctx, userDesignation.value, centerX, 760, {
-      font: 'bold 32px "Hind Siliguri", sans-serif',
-      color: '#444444'
+    drawTextWithShadow(ctx, 'শুভেচ্ছান্তে', centerX, 580, {
+      font: 'bold 45px "Hind Siliguri", sans-serif',
+      color: '#ffffff',
+      strokeColor: '#cccccc', strokeWidth: 4,
+      shadowColor: 'rgba(0,0,0,0.2)', shadowY: 3, shadowBlur: 6
+    });
+
+    drawTextWithShadow(ctx, userName.value || 'আপনার নাম', centerX, 680, {
+      font: 'bold 65px "Hind Siliguri", sans-serif',
+      color: '#d4af37',
+      shadowColor: 'rgba(0,0,0,0.15)', shadowY: 4, shadowBlur: 8
+    });
+
+    if (userDesignation.value) {
+      drawTextWithShadow(ctx, userDesignation.value, centerX, 760, {
+        font: 'bold 32px "Hind Siliguri", sans-serif',
+        color: '#444444'
+      });
+    }
+
+    drawMultilineText(ctx, userMessage.value, centerX, userDesignation.value ? 840 : 800, 50, {
+      font: 'bold 38px "Hind Siliguri", sans-serif',
+      color: '#ffffff',
+      strokeColor: '#d6d6d6', strokeWidth: 5,
+      shadowColor: 'rgba(0,0,0,0.15)', shadowY: 3, shadowBlur: 5
     });
   }
-
-  // Draw multiline message
-  drawMultilineText(ctx, userMessage.value, centerX, userDesignation.value ? 840 : 800, 50, {
-    font: 'bold 38px "Hind Siliguri", sans-serif',
-    color: '#ffffff',
-    strokeColor: '#d6d6d6',
-    strokeWidth: 5,
-    shadowColor: 'rgba(0,0,0,0.15)',
-    shadowY: 3,
-    shadowBlur: 5
-  });
 };
 
 const downloadCard = () => {
@@ -280,7 +408,10 @@ onMounted(async () => {
   // Load default background initially
   backgroundImage.value = await loadImage(defaultBg);
   
-  // Ensure we load Bengali font properly
+  // Draw canvas immediately and when fonts are ready
+  drawCanvas();
+  
+  // Ensure we load Bengali font properly and redraw
   document.fonts.ready.then(() => {
     drawCanvas();
   });
@@ -288,7 +419,7 @@ onMounted(async () => {
 </script>
 
 <style scoped>
-@import url('https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@500;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@500;700&family=Noto+Sans+Bengali:wght@400;700&family=Poppins:wght@600;700&family=Playfair+Display:wght@700&family=Montserrat:wght@600;700&display=swap');
 
 .card-generator-wrapper {
   font-family: 'Hind Siliguri', sans-serif;
@@ -323,6 +454,20 @@ onMounted(async () => {
   padding-bottom: 0.8rem;
 }
 
+.template-selector {
+  display: flex;
+  gap: 1.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.radio-label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: normal;
+  cursor: pointer;
+}
+
 .form-group {
   margin-bottom: 1.5rem;
 }
@@ -335,6 +480,7 @@ onMounted(async () => {
   font-size: 0.95rem;
 }
 
+.event-select,
 .form-group input[type="text"],
 .form-group textarea {
   width: 100%;
@@ -348,6 +494,21 @@ onMounted(async () => {
   background-color: #fdfdfd;
 }
 
+.font-select {
+  width: 100%;
+  padding: 0.85rem;
+  border: 1px solid #ced4da;
+  border-radius: 6px;
+  font-size: 1rem;
+  font-family: inherit;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  box-sizing: border-box;
+  background-color: #fdfdfd;
+  cursor: pointer;
+}
+
+.event-select:focus,
+.font-select:focus,
 .form-group input[type="text"]:focus,
 .form-group textarea:focus {
   outline: none;
@@ -409,6 +570,85 @@ onMounted(async () => {
   font-size: 0.9rem;
   color: #666;
   margin-bottom: 0.4rem;
+}
+
+.color-picker-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.color-picker {
+  width: 60px;
+  height: 45px;
+  border: 2px solid #ced4da;
+  border-radius: 6px;
+  cursor: pointer;
+  padding: 3px;
+  background-color: #fff;
+}
+
+.color-picker:hover {
+  border-color: #80bdff;
+}
+
+.color-value {
+  font-family: 'Courier New', monospace;
+  font-weight: 600;
+  color: #333;
+  font-size: 0.95rem;
+}
+
+.font-size-slider {
+  width: 100%;
+  height: 6px;
+  border-radius: 3px;
+  background: linear-gradient(to right, #e9ecef, #80bdff);
+  outline: none;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.font-size-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: #007bff;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(0,123,255,.3);
+  transition: background 0.2s;
+}
+
+.font-size-slider::-webkit-slider-thumb:hover {
+  background: #0056b3;
+}
+
+.font-size-slider::-moz-range-thumb {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: #007bff;
+  cursor: pointer;
+  border: none;
+  box-shadow: 0 2px 6px rgba(0,123,255,.3);
+  transition: background 0.2s;
+}
+
+.font-size-slider::-moz-range-thumb:hover {
+  background: #0056b3;
+}
+
+.font-size-display {
+  display: inline-block;
+  margin-left: 0.5rem;
+  background: #f1f3f5;
+  padding: 0.25rem 0.6rem;
+  border-radius: 4px;
+  font-weight: 600;
+  font-size: 0.85rem;
+  color: #495057;
 }
 
 .action-group {
