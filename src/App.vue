@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import CardGenerator from "./components/CardGenerator.vue"
+import CardGenerator from "@/components/CardGenerator.vue";
 </script>
 
 <template>
