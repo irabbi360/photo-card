@@ -109,18 +109,20 @@
           <input type="file" accept="image/*" @change="onImageUpload" />
         </div>
         
-        <!-- Action -->
-        <div class="action-group">
-          <button @click="downloadCard" class="download-btn">
-            Download Card Image
-          </button>
-        </div>
+        
       </div>
 
       <!-- Preview Section (Right) -->
       <div class="preview-section">
         <div class="canvas-container">
           <canvas ref="canvasRef" width="800" height="1000" class="preview-canvas"></canvas>
+          
+          <!-- Action -->
+          <div class="action-group">
+            <button @click="downloadCard" class="download-btn">
+              Download Card Image
+            </button>
+          </div>
         </div>
       </div>
 
@@ -652,7 +654,8 @@ onMounted(async () => {
 }
 
 .action-group {
-  margin-top: 2.5rem;
+  margin-top: 0;
+  width: 100%;
 }
 
 .download-btn {
@@ -687,7 +690,10 @@ onMounted(async () => {
 
 .canvas-container {
   width: 100%;
-  max-width: 500px; /* Scale preview down */
+  max-width: 500px;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
 }
 
 /* Make canvas strictly fit parent in Preview, but inside maintain 800x1000 */
